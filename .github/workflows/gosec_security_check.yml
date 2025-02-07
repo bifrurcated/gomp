@@ -1,48 +1,36 @@
 name: Gosec Security Check
 
-on:
-  workflow_call:
-    inputs:
-      go-version:
-        required: false
-        type: string
-      os:
-        required: false
-        type: string
-
 jobs:
   security-analysis:
-    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    runs-on: 'ubuntu-latest'
+    env:
+      GO111MODULE: on
     steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        - name: Set up Go
-          uses: actions/setup-go@v5
-          with:
-            go-version: ${{ inputs.go-version || '1.23.5' }}
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: ./...
+          format: json
+          output: gosec-results.json
 
-        - name: Install Gosec
-          run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: Upload Gosec report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gosec-report
+          path: gosec-results.json
 
-        - name: Run Gosec and save results
-          run: gosec -fmt=text ./... > gosec-report.txt || true
+      - name: Convert Gosec report to Markdown
+        run: |
+          echo "## Gosec Security Report" > gosec-report.md
+          echo "```json" >> gosec-report.md
+          cat gosec-results.json >> gosec-report.md
+          echo "```" >> gosec-report.md
 
-        - name: Upload Gosec report as artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: gosec-report
-            path: gosec-report.txt
-
-        - name: Convert Gosec report to Markdown
-          run: |
-            echo "## Gosec Security Report" > gosec-report.md
-            echo "```" >> gosec-report.md
-            cat gosec-report.txt >> gosec-report.md
-            echo "```" >> gosec-report.md
-
-        - name: Add Gosec report as PR comment
-          uses: marocchino/sticky-pull-request-comment@v2
-          with:
-            recreate: true
-            path: gosec-report.md
+      - name: Add Gosec report as PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: gosec-report.md
