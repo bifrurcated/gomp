@@ -34,9 +34,9 @@ jobs:
       - name: Convert Gosec report to Markdown
         run: |
           echo "## Gosec Security Report" > gosec-report.md
-          echo "```json" >> gosec-report.md
+          echo '```json' >> gosec-report.md
           cat gosec-results.json >> gosec-report.md
-          echo "```" >> gosec-report.md
+          echo '```' >> gosec-report.md
 
       - name: Add Gosec report as PR comment
         uses: marocchino/sticky-pull-request-comment@v2
