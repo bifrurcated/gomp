@@ -26,17 +26,13 @@ jobs:
           run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
         - name: Run Gosec and save results
-          run: |
-            gosec -fmt=json -out=gosec-results.json ./...
-            gosec -fmt=text ./... > gosec-report.txt
+          run: gosec -fmt=text ./... > gosec-report.txt
 
         - name: Upload Gosec report as artifact
           uses: actions/upload-artifact@v4
           with:
             name: gosec-report
-            path: |
-              gosec-results.json
-              gosec-report.txt
+            path: gosec-report.txt
 
         - name: Convert Gosec report to Markdown
           run: |
