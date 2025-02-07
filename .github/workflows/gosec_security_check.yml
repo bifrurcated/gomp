@@ -7,7 +7,7 @@ on:
         required: false
         type: string
       go-version:
-        required: false
+        required: true
         type: string
 
 jobs:
@@ -15,21 +15,15 @@ jobs:
     runs-on:  ${{ inputs.os || 'ubuntu-latest' }}
     env:
       GO111MODULE: on
+      GOSECGOVERSION: ${{ inputs.go-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ inputs.go-version || '1.23.5' }}
-
-      - name: Install Gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
-
       - name: Run Gosec Security Scanner
-        run: |
-          gosec -fmt=json -out=gosec-results.json ./... || true
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt json -out gosec-results.json ./...'
 
       - name: Upload Gosec report as artifact
         uses: actions/upload-artifact@v4
