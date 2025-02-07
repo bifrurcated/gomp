@@ -1,0 +1,46 @@
+name: Gosec Security Check
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        required: false
+        type: string
+      os:
+        required: false
+        type: string
+jobs:
+  security-analysis:
+    runs-on: ${{ inputs.go-version || 'ubuntu-latest' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version || '1.23.x' }}
+
+      - name: Install Gosec
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Run Gosec Security Scan
+        run: |
+          gosec -fmt=json -out=results.json ./...
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: results.json
+
+      - name: Annotate PR with results
+        if: github.event_name == 'pull_request'
+        uses: reviewdog/action-gosec@v1
+        with:
+          gosec_args: ./...
+          level: warning
+          reporter: github-pr-review
+          filter_mode: nofilter
