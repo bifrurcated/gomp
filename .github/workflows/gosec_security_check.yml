@@ -6,12 +6,16 @@ on:
       os:
         required: false
         type: string
+      go-version:
+        required: false
+        type: string
 
 jobs:
   security-analysis:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     env:
       GO111MODULE: on
+      GOSECGOVERSION: go${{ inputs.go-version || '1.23.5' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

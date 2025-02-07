@@ -22,3 +22,4 @@ jobs:
     uses: ./.github/workflows/gosec_security_check.yml
     with:
       os: ${{ matrix.os }}
+      go-version: ${{ matrix.go-version }}
