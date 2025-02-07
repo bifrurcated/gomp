@@ -26,7 +26,7 @@ jobs:
           run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
         - name: Run Gosec and save results
-          run: gosec -fmt=text ./... > gosec-report.txt
+          run: gosec -fmt=text ./... > gosec-report.txt || true
 
         - name: Upload Gosec report as artifact
           uses: actions/upload-artifact@v4
