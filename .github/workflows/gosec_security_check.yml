@@ -1,8 +1,15 @@
 name: Gosec Security Check
 
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: false
+        type: string
+
 jobs:
   security-analysis:
-    runs-on: 'ubuntu-latest'
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     env:
       GO111MODULE: on
     steps:
