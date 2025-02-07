@@ -44,3 +44,24 @@ jobs:
         with:
           recreate: true
           path: gosec-report.md
+
+    codacy-analysis:
+      runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Set up Go ${{ inputs.go-version }}
+          uses: actions/setup-go@v5
+          with:
+            go-version: ${{ inputs.go-version }}
+
+        - name: Run Codacy Analysis
+          uses: codacy/codacy-analysis-cli-action@v4
+          with:
+            project-token: ${{ secrets.CODACY_API_TOKEN }}
+            # Дополнительные опции (раскомментируйте при необходимости):
+            # debug: true
+            # upload-coverage: true
+            # format: cobertura
+            # coverage-reports: coverage.xml
