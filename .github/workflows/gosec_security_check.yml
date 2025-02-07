@@ -9,38 +9,44 @@ on:
       os:
         required: false
         type: string
+
 jobs:
   security-analysis:
-    runs-on: ${{ inputs.go-version || 'ubuntu-latest' }}
-
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        - name: Checkout code
+          uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ inputs.go-version || '1.23.x' }}
+        - name: Set up Go
+          uses: actions/setup-go@v5
+          with:
+            go-version: ${{ inputs.go-version || '1.23.5' }}
 
-      - name: Install Gosec
-        run: |
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+        - name: Install Gosec
+          run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
-      - name: Run Gosec Security Scan
-        run: |
-          gosec -fmt=json -out=results.json ./...
+        - name: Run Gosec and save results
+          run: |
+            gosec -fmt=json -out=gosec-results.json ./...
+            gosec -fmt=text ./... > gosec-report.txt
 
-      - name: Upload Security Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-report
-          path: results.json
+        - name: Upload Gosec report as artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: gosec-report
+            path: |
+              gosec-results.json
+              gosec-report.txt
 
-      - name: Annotate PR with results
-        if: github.event_name == 'pull_request'
-        uses: reviewdog/action-gosec@v1
-        with:
-          gosec_args: ./...
-          level: warning
-          reporter: github-pr-review
-          filter_mode: nofilter
+        - name: Convert Gosec report to Markdown
+          run: |
+            echo "## Gosec Security Report" > gosec-report.md
+            echo "```" >> gosec-report.md
+            cat gosec-report.txt >> gosec-report.md
+            echo "```" >> gosec-report.md
+
+        - name: Add Gosec report as PR comment
+          uses: marocchino/sticky-pull-request-comment@v2
+          with:
+            recreate: true
+            path: gosec-report.md
