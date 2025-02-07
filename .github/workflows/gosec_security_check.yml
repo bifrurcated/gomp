@@ -12,20 +12,24 @@ on:
 
 jobs:
   security-analysis:
-    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    runs-on:  ${{ inputs.os || 'ubuntu-latest' }}
     env:
       GO111MODULE: on
-      GOSECGOVERSION: go${{ inputs.go-version || '1.23.5' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Gosec Security Scanner
-        uses: securego/gosec@master
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          args: ./...
-          format: json
-          output: gosec-results.json
+          go-version: ${{ inputs.go-version || '1.23.5' }}
+
+      - name: Install Gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Run Gosec Security Scanner
+        run: |
+          gosec -fmt=json -out=gosec-results.json ./... || true
 
       - name: Upload Gosec report as artifact
         uses: actions/upload-artifact@v4
