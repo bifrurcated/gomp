@@ -21,4 +21,4 @@ jobs:
   security-analysis:
     uses: ./.github/workflows/gosec_security_check.yml
     with:
-      go-version: 'go1.23.5'
+      go-version: '1.23.5'
